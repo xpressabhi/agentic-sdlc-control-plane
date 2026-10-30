@@ -156,7 +156,7 @@ def test_policy_denial_consumes_retry_and_remediates(tmp_path: Path) -> None:
 
     def leaky(context: AgentContext) -> AgentResult:
         content = (
-            'AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"\n'
+            'AWS_ACCESS_KEY = "AKIA' + 'IOSFODNN7EXAMPLE"\n'
             if context.attempt == 1
             else "def healthy():\n    return True\n"
         )

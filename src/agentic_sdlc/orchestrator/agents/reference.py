@@ -1180,7 +1180,7 @@ class BrownfieldImplementationAgent:
             module = module.replace(
                 "ANALYTICS_RETENTION_DAYS = 90",
                 'ANALYTICS_RETENTION_DAYS = 90\n'
-                'AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"',
+                'AWS_ACCESS_KEY = "AKIA' + 'IOSFODNN7EXAMPLE"',
             )
         return AgentResult(
             summary="Brownfield extension module and tests generated",

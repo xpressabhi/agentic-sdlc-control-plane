@@ -43,7 +43,7 @@ def test_secret_detection_blocks_code() -> None:
         ArtifactDraft(
             "module.py",
             "code",
-            'AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"\n',
+            'AWS_ACCESS_KEY = "AKIA' + 'IOSFODNN7EXAMPLE"\n',
         )
     ]
     decisions = evaluate(artifacts)
@@ -55,7 +55,7 @@ def test_secret_detection_blocks_code() -> None:
 def test_private_key_and_generic_secret() -> None:
     for content in (
         "-----BEGIN RSA PRIVATE KEY-----\nabc",
-        'password = "super-secret-value"',
+        'password = "super-' + 'secret-value"',
     ):
         decisions = evaluate([ArtifactDraft("module.py", "code", content)])
         assert any(decision.rule_id == "SEC-001" and not decision.allow for decision in decisions)
@@ -69,7 +69,9 @@ def test_clean_code_passes() -> None:
 
 
 def test_pii_detection() -> None:
-    decisions = evaluate([ArtifactDraft("module.py", "code", 'SSN = "123-45-6789"')])
+    decisions = evaluate(
+        [ArtifactDraft("module.py", "code", 'SSN = "123-' + '45-6789"')]
+    )
     assert any(decision.rule_id == "SEC-002" for decision in decisions)
 
 

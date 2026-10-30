@@ -113,7 +113,7 @@ flowchart LR
   and reports line/function/change-signal counts against the actual code.
 - **Migration validation:** the migration is applied to a throwaway SQLite database and checked
   with `PRAGMA table_info`; evidence is attached as an artifact.
-- **Policy-enforced retry:** attempt 1 contains `AKIAIOSFODNN7EXAMPLE`; `SEC-001` denies it as
+- **Policy-enforced retry:** attempt 1 contains an AWS-style access key (example only); `SEC-001` denies it as
   retryable; attempt 2 removes the secret and succeeds. The denial is persisted and audited.
 - **Change control:** deploy requires a recorded approval and green regression evidence.
 - **No rollback on success:** the run completes normally; rollback machinery is covered by tests.
