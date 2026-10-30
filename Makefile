@@ -3,25 +3,25 @@
 install:
 	uv sync --all-extras
 
-test:
+test: install
 	uv run pytest
 
-lint:
+lint: install
 	uv run ruff check src tests
 
-cov:
+cov: install
 	uv run pytest --cov=agentic_sdlc --cov-report=term-missing
 
-serve:
+serve: install
 	uv run asdlc serve
 
-demo:
+demo: install
 	uv run asdlc demo
 
-demo-all:
+demo-all: install
 	uv run asdlc demo --all
 
-verify: lint test
+verify: install lint test
 	@echo "Verification complete."
 
 clean:
