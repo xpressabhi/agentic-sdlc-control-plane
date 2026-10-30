@@ -1,6 +1,12 @@
 .PHONY: install test lint cov serve demo demo-all verify clean reset
 
 install:
+	@if [ -f src/agentic_sdlc/web/app.js.txt ] && [ ! -f src/agentic_sdlc/web/app.js ]; then \
+		mv src/agentic_sdlc/web/app.js.txt src/agentic_sdlc/web/app.js; \
+	fi
+	@if [ -f scripts/demo.sh.txt ] && [ ! -f scripts/demo.sh ]; then \
+		mv scripts/demo.sh.txt scripts/demo.sh; chmod +x scripts/demo.sh; \
+	fi
 	uv sync --all-extras
 
 test: install
