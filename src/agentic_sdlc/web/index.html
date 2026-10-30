@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Conductor — Agentic SDLC Control Plane</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <aside class="rail">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true"><span></span></div>
+          <div>
+            <div class="brand-name">Conductor</div>
+            <div class="brand-sub">Agentic SDLC control plane</div>
+          </div>
+        </div>
+
+        <section class="rail-section">
+          <div class="rail-label">Launch scenario</div>
+          <div id="scenario-list" class="scenario-list"></div>
+          <label class="toggle">
+            <input id="auto-approve" type="checkbox" />
+            <span>Auto-approve (demo reviewer)</span>
+          </label>
+        </section>
+
+        <section class="rail-section runs-section">
+          <div class="rail-label">
+            Runs <span id="run-count" class="count">0</span>
+          </div>
+          <div id="run-list" class="run-list"></div>
+        </section>
+
+        <div class="rail-footer">
+          <label class="field-label" for="api-key">API key</label>
+          <input id="api-key" class="key-input" type="password" autocomplete="off" />
+          <div id="connection" class="connection"><i></i><span>connecting</span></div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div class="top-left">
+            <button id="rail-toggle" class="btn ghost rail-toggle" type="button" aria-label="Toggle navigation">☰</button>
+            <nav class="tabs" aria-label="Views">
+              <button class="tab active" data-view="runs">Runs</button>
+              <button class="tab" data-view="approvals">
+                Approvals <span id="approval-count" class="pill-count hidden">0</span>
+              </button>
+              <button class="tab" data-view="metrics">Metrics</button>
+            </nav>
+          </div>
+          <div class="top-actions">
+            <span id="live" class="live"><i></i>live</span>
+            <button id="refresh" class="btn ghost" type="button">Refresh</button>
+          </div>
+        </header>
+
+        <section id="view-runs" class="view">
+          <div id="run-header" class="run-header empty">
+            <div>
+              <div class="eyebrow">Run detail</div>
+              <h1>Select or launch a run</h1>
+              <p class="muted">
+                Every stage is a governed step: gates, policy, approvals, retries,
+                rollback and a hash-chained audit trail.
+              </p>
+            </div>
+          </div>
+
+          <div id="run-actions" class="run-actions hidden"></div>
+          <div id="metrics-strip" class="metrics-strip"></div>
+
+          <div class="panel dag-panel">
+            <div class="panel-head">
+              <div>
+                <div class="eyebrow">Execution graph</div>
+                <h2>Dependency levels</h2>
+              </div>
+              <div class="legend">
+                <span><i class="dot succeeded"></i>succeeded</span>
+                <span><i class="dot running"></i>running</span>
+                <span><i class="dot waiting"></i>awaiting</span>
+                <span><i class="dot failed"></i>failed</span>
+                <span><i class="dot pending"></i>pending</span>
+              </div>
+            </div>
+            <div class="dag-scroll">
+              <div id="dag" class="dag">
+                <svg id="dag-edges" class="dag-edges" aria-hidden="true"></svg>
+                <div id="dag-levels" class="dag-levels"></div>
+              </div>
+            </div>
+            <div id="dag-empty" class="empty-state">
+              <div class="empty-art" aria-hidden="true"></div>
+              <p>No run selected. Launch a scenario to watch the graph execute.</p>
+            </div>
+          </div>
+
+          <div class="lower-grid">
+            <div class="panel">
+              <div class="panel-head">
+                <div><div class="eyebrow">Artifacts</div><h2>Engineering output</h2></div>
+                <span id="artifact-total" class="count">0</span>
+              </div>
+              <div id="artifact-panel" class="artifact-panel empty-state small">
+                <p>Artifacts appear as stages complete.</p>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-head">
+                <div><div class="eyebrow">Audit</div><h2>Decision lineage</h2></div>
+                <span id="audit-state" class="chip">unverified</span>
+              </div>
+              <div id="audit-panel" class="audit-panel empty-state small">
+                <p>Audit events appear here.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-approvals" class="view hidden">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Human oversight</div>
+              <h1>Approvals inbox</h1>
+              <p class="muted">High-impact actions pause until a human records a decision.</p>
+            </div>
+            <span id="inbox-count" class="chip strong">0 pending</span>
+          </div>
+          <div id="approvals-list" class="approvals-list"></div>
+        </section>
+
+        <section id="view-metrics" class="view hidden">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Reliability</div>
+              <h1>Delivery metrics</h1>
+              <p class="muted">Computed from immutable run, stage and audit history.</p>
+            </div>
+          </div>
+          <div id="metrics-cards" class="metrics-cards"></div>
+          <div class="panel">
+            <div class="panel-head">
+              <div><div class="eyebrow">Throughput</div><h2>Runs by status</h2></div>
+            </div>
+            <div id="status-bars" class="status-bars"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head">
+              <div><div class="eyebrow">History</div><h2>Recent runs</h2></div>
+            </div>
+            <div id="recent-runs" class="recent-runs"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="drawer-backdrop" class="drawer-backdrop"></div>
+    <aside id="drawer" class="drawer" aria-hidden="true">
+      <div class="drawer-head">
+        <div>
+          <div id="drawer-eyebrow" class="eyebrow">Stage</div>
+          <h2 id="drawer-title">Stage</h2>
+        </div>
+        <button id="drawer-close" class="icon-btn" aria-label="Close details">×</button>
+      </div>
+      <div id="drawer-meta" class="drawer-meta"></div>
+      <div id="drawer-tabs" class="drawer-tabs"></div>
+      <div id="drawer-body" class="drawer-body"></div>
+    </aside>
+
+    <div id="modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div>
+            <div id="modal-eyebrow" class="eyebrow">Artifact</div>
+            <h2 id="modal-title">Artifact</h2>
+          </div>
+          <button id="modal-close" class="icon-btn" aria-label="Close">×</button>
+        </div>
+        <div id="modal-body" class="modal-body"></div>
+      </div>
+    </div>
+
+    <div id="toast" class="toast hidden" role="status"></div>
+    <div id="boot" class="boot">Loading control plane…</div>
+
+    <script src="/static/app.js" defer></script>
+  </body>
+</html>

@@ -1,0 +1,93 @@
+key: ambiguous
+name: "Ambiguous — Make Links Safer With Insights"
+intent: >-
+  Handle an underspecified request: surface ambiguity, force a human-normalized
+  interpretation, then govern a mid-flight scope change with impact-based
+  re-planning and artifact lineage.
+environment: production
+tags: [ambiguous, human-in-the-loop, replan]
+requirement: |
+  Make our links safer and give us better insights. We are not sure what
+  "safer" covers yet, and the business wants useful reporting without collecting
+  anything that would create privacy exposure. Analysts also want a retention
+  policy, but no number has been agreed.
+workflow:
+  id: wf-ambiguous
+  version: 1
+  auto_replan:
+    after_stage: tests
+    targets: [implementation, tests, documentation]
+    reason: >-
+      Scope change approved: retention is now 90 days and referrer attribution must
+      be explicit. Implementation, tests and documentation are regenerated as v2.
+    require_approval: true
+  stages:
+    - id: intake
+      name: Ambiguity Intake
+      agent: ambiguous_requirements
+      description: Detect ambiguity, surface questions and propose assumptions.
+      depends_on: []
+      exit_gate: artifact_present
+      max_retries: 1
+
+    - id: clarification
+      name: Human Scope Normalization
+      agent: clarification
+      description: A human approves the normalized interpretation before design.
+      depends_on: [intake]
+      requires_approval: true
+      exit_gate: artifact_present
+      max_retries: 0
+
+    - id: design
+      name: Architecture & Controls
+      agent: architecture
+      description: Design against the approved interpretation.
+      depends_on: [clarification]
+      exit_gate: artifact_present
+      max_retries: 1
+      policy_tags: [design_controls]
+
+    - id: threat_model
+      name: Privacy & Threat Model
+      agent: threat_model
+      description: Threat model including privacy and retention risks.
+      depends_on: [clarification]
+      exit_gate: artifact_present
+      max_retries: 1
+
+    - id: implementation
+      name: Implementation
+      agent: implementation
+      description: Core shortener plus retention-aware analytics behavior.
+      depends_on: [design, threat_model]
+      exit_gate: artifact_present
+      max_retries: 2
+      policy_tags: [code]
+
+    - id: tests
+      name: Validation
+      agent: validation
+      description: Execute tests after the governed re-plan.
+      depends_on: [implementation]
+      exit_gate: tests_passed
+      max_retries: 2
+      policy_tags: [code]
+
+    - id: documentation
+      name: Documentation
+      agent: documentation
+      description: Document retention, privacy controls and rollback.
+      depends_on: [implementation]
+      exit_gate: artifact_present
+      max_retries: 1
+
+    - id: release_readiness
+      name: Release Approval
+      agent: release
+      description: Production release gated by human approval and green evidence.
+      depends_on: [tests, documentation]
+      requires_approval: true
+      exit_gate: release_ready
+      max_retries: 0
+      policy_tags: [production_deploy]

@@ -1,0 +1,94 @@
+key: greenfield
+name: "Greenfield — Build URL Shortener v1"
+intent: >-
+  Turn a new-product requirement into a reviewed, tested and approved release
+  using parallel design paths, a validation join and a human deployment gate.
+environment: production
+tags: [greenfield, api, analytics, release]
+requirement: |
+  Build a URL shortener service from scratch. It must create short links with
+  generated or custom aliases, redirect with low latency, record click analytics,
+  support TTL expiry and soft delete, and expose health and metrics endpoints.
+  It must be secure against SSRF and abuse, and be releasable through a human
+  approval gate with rollback evidence.
+workflow:
+  id: wf-greenfield
+  version: 1
+  stages:
+    - id: requirements
+      name: Requirement Normalization
+      agent: requirements
+      description: Interpret intent, acceptance criteria and non-functional requirements.
+      depends_on: []
+      exit_gate: requirements_normalized
+      max_retries: 1
+      policy_tags: []
+
+    - id: architecture
+      name: Architecture & API Contract
+      agent: architecture
+      description: Components, data model, OpenAPI, security controls and trade-offs.
+      depends_on: [requirements]
+      exit_gate: artifact_present
+      max_retries: 1
+      policy_tags: [design_controls]
+
+    - id: threat_model
+      name: Threat Model
+      agent: threat_model
+      description: STRIDE, abuse cases, mitigations and residual risk.
+      depends_on: [requirements]
+      exit_gate: artifact_present
+      max_retries: 1
+
+    - id: implementation
+      name: Implementation
+      agent: implementation
+      description: Generate the shortener core and executable tests.
+      depends_on: [architecture, threat_model]
+      exit_gate: artifact_present
+      max_retries: 2
+      policy_tags: [code]
+
+    - id: test_plan
+      name: Test Plan
+      agent: test_plan
+      description: Risk-based test matrix and exit criteria.
+      depends_on: [architecture]
+      exit_gate: artifact_present
+      max_retries: 1
+
+    - id: validation
+      name: Validation Join
+      agent: validation
+      description: Execute generated tests in an isolated workspace.
+      depends_on: [implementation, test_plan]
+      exit_gate: tests_passed
+      max_retries: 2
+      policy_tags: [code]
+
+    - id: documentation
+      name: Documentation
+      agent: documentation
+      description: Runbook, rollback, SLOs and known limitations.
+      depends_on: [validation]
+      exit_gate: artifact_present
+      max_retries: 1
+
+    - id: release_readiness
+      name: Release Readiness
+      agent: release
+      description: Change control, evidence, observability and rollback checklist.
+      depends_on: [validation, documentation]
+      exit_gate: release_ready
+      max_retries: 1
+
+    - id: publish
+      name: Deployment Approval & Publish
+      agent: release
+      description: High-impact production deployment requiring human approval.
+      depends_on: [release_readiness]
+      requires_approval: true
+      exit_gate: artifact_present
+      max_retries: 0
+      policy_tags: [production_deploy]

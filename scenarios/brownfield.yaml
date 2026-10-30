@@ -1,0 +1,77 @@
+key: brownfield
+name: "Brownfield — Aliases, Analytics & TTL"
+intent: >-
+  Extend an existing URL shortener without breaking consumers: scan the real
+  codebase, migrate the schema in a sandbox, remediate a policy violation on
+  retry, prove regressions are green, and deploy under change control.
+environment: production
+tags: [brownfield, migration, policy, retry]
+requirement: |
+  Enhance the existing URL shortener with custom aliases, TTL expiry, soft
+  delete and per-link click analytics. Changes must be additive and backward
+  compatible. Provide a migration, an API compatibility review and regression
+  evidence. Existing short codes must continue to resolve.
+workflow:
+  id: wf-brownfield
+  version: 1
+  stages:
+    - id: impact_analysis
+      name: Codebase Impact Analysis
+      agent: impact_analysis
+      description: Scan real modules, map impacted APIs and data flows, assess risk.
+      depends_on: []
+      exit_gate: artifact_present
+      max_retries: 1
+
+    - id: migration
+      name: Schema Migration
+      agent: migration
+      description: Author and verify an additive migration in a sandbox database.
+      depends_on: [impact_analysis]
+      exit_gate: artifact_present
+      max_retries: 1
+      policy_tags: [code]
+
+    - id: api_contract
+      name: API Compatibility Review
+      agent: api_contract
+      description: Prove additive compatibility and document consumer impact.
+      depends_on: [impact_analysis]
+      exit_gate: artifact_present
+      max_retries: 1
+
+    - id: implementation
+      name: Extension Implementation
+      agent: brownfield_implementation
+      description: Add alias normalization, TTL helpers and analytics aggregation.
+      depends_on: [migration, api_contract]
+      exit_gate: artifact_present
+      max_retries: 2
+      policy_tags: [code]
+
+    - id: regression_tests
+      name: Regression Validation
+      agent: validation
+      description: Execute generated regression tests in an isolated workspace.
+      depends_on: [implementation]
+      exit_gate: tests_passed
+      max_retries: 2
+      policy_tags: [code]
+
+    - id: documentation
+      name: Migration Runbook
+      agent: documentation
+      description: Rollout, rollback and compatibility notes.
+      depends_on: [regression_tests]
+      exit_gate: artifact_present
+      max_retries: 1
+
+    - id: deploy
+      name: Change-Controlled Deploy
+      agent: release
+      description: Production deployment gated by human approval and test evidence.
+      depends_on: [regression_tests, documentation]
+      requires_approval: true
+      exit_gate: release_ready
+      max_retries: 0
+      policy_tags: [production_deploy]
